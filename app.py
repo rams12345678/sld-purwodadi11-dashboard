@@ -6,7 +6,10 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title='Monitoring Beban SLD Purwodadi-11', page_icon='⚡', layout='wide')
 BASE = Path(__file__).resolve().parent
-SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
+scope = [
+    "https://www.googleapis.com/auth/spreadsheets.readonly",
+    "https://www.googleapis.com/auth/drive.readonly"
+]
 
 @st.cache_data(ttl=60, show_spinner='Mengambil data Google Sheets...')
 def load_data():
