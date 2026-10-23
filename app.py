@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import streamlit as st
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 from PIL import Image
 
 # 1. Pengaturan Halaman Dashboard Streamlit
@@ -16,23 +16,23 @@ st.set_page_config(
 @st.cache_data(ttl=60)  # Cache data selama 60 detik
 def load_data_from_sheet():
     scope = [
-        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
     ]
     
-    # Cek apakah running di Streamlit Cloud atau Lokal
+    # Cek apakah running di Streamlit Cloud (st.secrets) atau Lokal (credentials.json)
     if "gcp_service_account" in st.secrets:
-        # Mengambil langsung sebagai dictionary dari st.secrets
         creds_dict = dict(st.secrets["gcp_service_account"])
-        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
     else:
-        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+        creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
         
     client = gspread.authorize(creds)
     sheet = client.open("Database_Beban_Purwodadi11").sheet1
     
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
+    # Bersihkan nama kolom dari spasi berlebih
     df.columns = df.columns.str.strip()
     return df
 
