@@ -12,14 +12,21 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Fungsi Koneksi & Ambil Data dari Google Sheets
+# 2. Fungsi Koneksi & Ambil Data dari Google Sheets (Support Lokal & Cloud Secrets)
 @st.cache_data(ttl=60)  # Cache data selama 60 detik
 def load_data_from_sheet():
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
     ]
-    creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+    
+    # Cek apakah running di Streamlit Cloud (st.secrets) atau Lokal (credentials.json)
+    if "gcp_service_account" in st.secrets:
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+    else:
+        creds = ServiceAccountCredentials.from_json_keyfile_name("credentials.json", scope)
+        
     client = gspread.authorize(creds)
     sheet = client.open("Database_Beban_Purwodadi11").sheet1
     
@@ -88,7 +95,7 @@ try:
             image_sld = Image.open(gambar_ditemukan)
             st.image(image_sld, caption=f"SLD Purwodadi-11 Real-Time Monitoring ({gambar_ditemukan})", use_container_width=True)
         else:
-            st.warning("⚠️ File gambar SLD belum ditemukan di folder C:\\Project_SLD. Pastikan nama file Anda sudah sesuai.")
+            st.warning("⚠️ File gambar SLD belum ditemukan di folder repository. Pastikan nama file gambar Anda sudah sesuai.")
 
         # E. Detail Arus Perangkat Dalam Bentuk Metrik Card
         st.subheader(f"⚡ Detail Arus Perangkat pada Sesi: {pilih_jam}")
