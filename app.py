@@ -20,8 +20,9 @@ def load_data_from_sheet():
         "https://www.googleapis.com/auth/drive"
     ]
     
-    # Cek apakah running di Streamlit Cloud (st.secrets) atau Lokal (credentials.json)
+    # Cek apakah running di Streamlit Cloud atau Lokal
     if "gcp_service_account" in st.secrets:
+        # Mengambil langsung sebagai dictionary dari st.secrets
         creds_dict = dict(st.secrets["gcp_service_account"])
         creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
     else:
@@ -32,7 +33,6 @@ def load_data_from_sheet():
     
     data = sheet.get_all_records()
     df = pd.DataFrame(data)
-    # Bersihkan nama kolom dari spasi berlebih
     df.columns = df.columns.str.strip()
     return df
 
