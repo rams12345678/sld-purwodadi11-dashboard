@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. Fungsi Koneksi & Ambil Data dari Google Sheets (Support Lokal & Cloud Secrets)
+# 2. Fungsi Koneksi & Ambil Data dari Google Sheets (Dengan Pembersihan/Normalisasi Private Key)
 @st.cache_data(ttl=60)  # Cache data selama 60 detik
 def load_data_from_sheet():
     scope = [
@@ -23,6 +23,13 @@ def load_data_from_sheet():
     # Cek apakah running di Streamlit Cloud (st.secrets) atau Lokal (credentials.json)
     if "gcp_service_account" in st.secrets:
         creds_dict = dict(st.secrets["gcp_service_account"])
+        
+        # Normalisasi otomatis private_key untuk mengatasi masalah padding / spasi / \n
+        pk = creds_dict.get("private_key", "")
+        pk = pk.replace("\\n", "\n")
+        lines = [line.strip() for line in pk.split("\n") if line.strip()]
+        creds_dict["private_key"] = "\n".join(lines) + "\n"
+        
         creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
     else:
         creds = Credentials.from_service_account_file("credentials.json", scopes=scope)
